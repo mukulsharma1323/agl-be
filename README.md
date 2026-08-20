@@ -6,6 +6,10 @@ NestJS service that ingests XML from the public NHTSA vPIC APIs, transforms the 
 
 The NHTSA `GetAllMakes` API returns one large XML response and does not provide pages for this endpoint. The service reads that XML as a stream and processes `AllVehicleMakes` records in small batches, so it does not keep all 12k+ makes in memory at once. For each batch, it fetches vehicle types with limited concurrency and saves the transformed records to SQLite in chunks.
 
+## Backend Flow
+
+![Backend flow](docs/backend-flow.svg)
+
 ## Features
 
 - Pulls all vehicle makes from `getallmakes?format=XML`.

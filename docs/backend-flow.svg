@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+  <title id="title">AGL Backend Flow Diagram</title>
+  <desc id="desc">GraphQL read flow and NHTSA vehicle ingestion flow for the AGL backend.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155" />
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { font: 700 34px Inter, Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 16px Inter, Arial, sans-serif; fill: #475569; }
+      .section { font: 700 17px Inter, Arial, sans-serif; fill: #334155; letter-spacing: 0.3px; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 14; filter: url(#shadow); }
+      .box-blue { fill: #eff6ff; stroke: #60a5fa; }
+      .box-green { fill: #ecfdf5; stroke: #34d399; }
+      .box-amber { fill: #fffbeb; stroke: #f59e0b; }
+      .box-red { fill: #fef2f2; stroke: #f87171; }
+      .db { fill: #f5f3ff; stroke: #8b5cf6; stroke-width: 2; filter: url(#shadow); }
+      .label { font: 700 16px Inter, Arial, sans-serif; fill: #0f172a; }
+      .small { font: 400 13px Inter, Arial, sans-serif; fill: #475569; }
+      .line { stroke: #334155; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .line-soft { stroke: #64748b; stroke-width: 2; fill: none; marker-end: url(#arrow); stroke-dasharray: 7 7; }
+      .pill { fill: #e2e8f0; rx: 12; }
+      .pill-text { font: 700 12px Inter, Arial, sans-serif; fill: #334155; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1400" height="900" />
+  <text class="title" x="70" y="70">AGL Backend Architecture Flow</text>
+  <text class="subtitle" x="70" y="100">GraphQL read APIs and NHTSA XML ingestion pipeline</text>
+
+  <text class="section" x="84" y="160">READ FLOW</text>
+  <text class="section" x="590" y="160">INGESTION FLOW</text>
+  <text class="section" x="1080" y="160">PERSISTENCE</text>
+
+  <rect class="box box-blue" x="70" y="190" width="250" height="84" />
+  <text class="label" x="195" y="224" text-anchor="middle">Client</text>
+  <text class="small" x="195" y="249" text-anchor="middle">GraphQL Playground or FE</text>
+
+  <rect class="box box-blue" x="70" y="330" width="250" height="84" />
+  <text class="label" x="195" y="365" text-anchor="middle">GraphQL API</text>
+  <text class="small" x="195" y="389" text-anchor="middle">/graphql endpoint</text>
+
+  <rect class="box" x="70" y="470" width="250" height="84" />
+  <text class="label" x="195" y="505" text-anchor="middle">Vehicle Resolver</text>
+  <text class="small" x="195" y="529" text-anchor="middle">Queries and mutation</text>
+
+  <rect class="box box-green" x="440" y="470" width="250" height="84" />
+  <text class="label" x="565" y="505" text-anchor="middle">Vehicle Repository</text>
+  <text class="small" x="565" y="529" text-anchor="middle">find, count, upsert</text>
+
+  <path class="db" d="M1080 454 C1080 430 1290 430 1290 454 L1290 566 C1290 590 1080 590 1080 566 Z" />
+  <ellipse class="db" cx="1185" cy="454" rx="105" ry="24" />
+  <text class="label" x="1185" y="506" text-anchor="middle">SQLite Database</text>
+  <text class="small" x="1185" y="531" text-anchor="middle">vehicle_makes table</text>
+
+  <rect class="box box-amber" x="440" y="190" width="250" height="84" />
+  <text class="label" x="565" y="224" text-anchor="middle">Ingestion Service</text>
+  <text class="small" x="565" y="249" text-anchor="middle">orchestrates pipeline</text>
+
+  <rect class="box" x="440" y="330" width="250" height="84" />
+  <text class="label" x="565" y="365" text-anchor="middle">Read Config</text>
+  <text class="small" x="565" y="389" text-anchor="middle">limit, batch, concurrency</text>
+
+  <rect class="box box-amber" x="760" y="190" width="250" height="84" />
+  <text class="label" x="885" y="224" text-anchor="middle">NHTSA Client</text>
+  <text class="small" x="885" y="249" text-anchor="middle">external XML APIs</text>
+
+  <rect class="box" x="760" y="330" width="250" height="84" />
+  <text class="label" x="885" y="365" text-anchor="middle">Stream All Makes</text>
+  <text class="small" x="885" y="389" text-anchor="middle">large XML response</text>
+
+  <rect class="box" x="760" y="470" width="250" height="84" />
+  <text class="label" x="885" y="505" text-anchor="middle">SAX Parser</text>
+  <text class="small" x="885" y="529" text-anchor="middle">Make ID and name</text>
+
+  <rect class="box" x="760" y="610" width="250" height="84" />
+  <text class="label" x="885" y="645" text-anchor="middle">Batches and Workers</text>
+  <text class="small" x="885" y="669" text-anchor="middle">bounded concurrency</text>
+
+  <rect class="box" x="440" y="610" width="250" height="84" />
+  <text class="label" x="565" y="645" text-anchor="middle">Fetch Vehicle Types</text>
+  <text class="small" x="565" y="669" text-anchor="middle">one request per make</text>
+
+  <rect class="box" x="440" y="750" width="250" height="84" />
+  <text class="label" x="565" y="785" text-anchor="middle">Parse Type XML</text>
+  <text class="small" x="565" y="809" text-anchor="middle">xml2js output</text>
+
+  <rect class="box box-green" x="760" y="750" width="250" height="84" />
+  <text class="label" x="885" y="785" text-anchor="middle">Transform and Validate</text>
+  <text class="small" x="885" y="809" text-anchor="middle">final JSON shape</text>
+
+  <rect class="box box-red" x="1080" y="710" width="250" height="84" />
+  <text class="label" x="1205" y="745" text-anchor="middle">Log and Skip</text>
+  <text class="small" x="1205" y="769" text-anchor="middle">bad make only</text>
+
+  <rect class="pill" x="820" y="108" width="126" height="28" />
+  <text class="pill-text" x="883" y="127" text-anchor="middle">NHTSA XML</text>
+
+  <path class="line" d="M195 274 L195 330" />
+  <path class="line" d="M195 414 L195 470" />
+  <path class="line" d="M320 512 L440 512" />
+  <path class="line" d="M690 512 L1080 512" />
+  <path class="line-soft" d="M1080 536 L690 536" />
+  <path class="line-soft" d="M440 536 L320 536" />
+  <path class="line-soft" d="M195 470 L195 414" />
+  <path class="line-soft" d="M195 330 L195 274" />
+
+  <path class="line" d="M320 488 C365 418 395 285 440 244" />
+  <path class="line" d="M565 274 L565 330" />
+  <path class="line" d="M690 232 L760 232" />
+  <path class="line" d="M885 274 L885 330" />
+  <path class="line" d="M885 414 L885 470" />
+  <path class="line" d="M885 554 L885 610" />
+  <path class="line" d="M760 652 L690 652" />
+  <path class="line" d="M565 694 L565 750" />
+  <path class="line" d="M690 792 L760 792" />
+  <path class="line" d="M885 750 C875 690 795 565 690 524" />
+  <path class="line" d="M1010 792 C1062 756 1028 512 1080 512" />
+
+  <path class="line-soft" d="M690 770 C830 700 980 700 1080 740" />
+  <path class="line-soft" d="M1010 800 C1050 810 1085 800 1110 790" />
+
+  <text class="small" x="352" y="451">mutation starts ingestion</text>
+  <text class="small" x="720" y="500">upsert success</text>
+  <text class="small" x="1015" y="694">failed make path</text>
+</svg>
