@@ -1,0 +1,7 @@
+node_modules
+dist
+coverage
+.git
+.codex-pdf-venv
+data/*.sqlite
+npm-debug.log
