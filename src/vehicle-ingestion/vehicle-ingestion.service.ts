@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { APP_LOGGER } from '../logging/logger.module';
 import type { AppLogger } from '../logging/logger.types';
 import {
-  extractMakes,
   extractVehicleTypes,
   transformVehicleMake,
 } from './domain/vehicle-transformer';
@@ -35,31 +34,41 @@ export class VehicleIngestionService implements OnApplicationBootstrap {
 
   async ingest(limit?: number): Promise<IngestionResult> {
     try {
-      const allMakesXml = await this.client.fetchAllMakesXml();
       const configuredLimit =
         this.config.getOrThrow<number>('ingestion.maxMakes');
       const requestedLimit = limit ?? configuredLimit;
-      const makes = extractMakes(allMakesXml).slice(
-        0,
-        requestedLimit > 0 ? requestedLimit : undefined,
-      );
       const concurrency = this.config.getOrThrow<number>(
         'ingestion.concurrency',
       );
+      const batchSize = this.config.getOrThrow<number>('ingestion.batchSize');
+      let requestedMakes = 0;
+      let savedMakes = 0;
+      let failedMakes = 0;
 
-      const transformed = await this.mapConcurrent(
-        makes,
-        concurrency,
-        async (make) => this.transformMakeWithTypes(make),
+      await this.client.streamAllMakesInBatches(
+        batchSize,
+        async (makes) => {
+          requestedMakes += makes.length;
+
+          const transformed = await this.mapConcurrent(
+            makes,
+            concurrency,
+            async (make) => this.transformMakeWithTypes(make),
+          );
+          const successful = transformed.filter((make) => make !== null);
+
+          await this.vehicles.upsertMany(successful);
+
+          savedMakes += successful.length;
+          failedMakes += makes.length - successful.length;
+        },
+        requestedLimit,
       );
-      const successful = transformed.filter((make) => make !== null);
-
-      await this.vehicles.upsertMany(successful);
 
       const result: IngestionResult = {
-        requestedMakes: makes.length,
-        savedMakes: successful.length,
-        failedMakes: makes.length - successful.length,
+        requestedMakes,
+        savedMakes,
+        failedMakes,
       };
 
       this.logger.info(result, 'vehicle ingestion completed');

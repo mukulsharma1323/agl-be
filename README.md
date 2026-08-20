@@ -2,6 +2,10 @@
 
 NestJS service that ingests XML from the public NHTSA vPIC APIs, transforms the data into a unified JSON structure, persists it in SQLite, and exposes the stored result through a single GraphQL endpoint.
 
+## How Data Is Loaded
+
+The NHTSA `GetAllMakes` API returns one large XML response and does not provide pages for this endpoint. The service reads that XML as a stream and processes `AllVehicleMakes` records in small batches, so it does not keep all 12k+ makes in memory at once. For each batch, it fetches vehicle types with limited concurrency and saves the transformed records to SQLite in chunks.
+
 ## Features
 
 - Pulls all vehicle makes from `getallmakes?format=XML`.
@@ -81,6 +85,7 @@ All configuration is read from environment variables and validated with Zod at s
 | `NHTSA_VEHICLE_TYPES_URL_TEMPLATE` | vPIC make types XML URL | URL template; `{makeId}` is replaced per make. |
 | `HTTP_TIMEOUT_MS` | `10000` | External API timeout. |
 | `INGESTION_CONCURRENCY` | `8` | Number of vehicle type requests processed concurrently. |
+| `INGESTION_BATCH_SIZE` | `250` | Number of makes processed and saved per ingestion batch. |
 | `INGESTION_MAX_MAKES` | `0` | Optional cap for ingestion. `0` means all makes. |
 | `INGEST_ON_STARTUP` | `false` | Automatically run ingestion during application bootstrap. |
 
@@ -127,11 +132,11 @@ type Mutation {
 
 ## Ingestion Pipeline
 
-1. `NhtsaClient` fetches XML with Axios and parses it using `xml2js`.
+1. `NhtsaClient` streams the all-makes XML with Axios and parses each make using a SAX parser.
 2. `vehicle-transformer` normalizes parser output, validates required fields, and maps it to the unified JSON shape.
 3. `VehicleIngestionService` fetches vehicle types with bounded concurrency.
 4. Failed make-level transformations are logged and skipped so one bad make does not fail the entire run.
-5. Successfully transformed makes are upserted into SQLite.
+5. Successfully transformed makes are upserted into SQLite per batch.
 
 ## Error Handling And Logging
 

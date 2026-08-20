@@ -2,6 +2,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { VehicleIngestionService } from './vehicle-ingestion.service';
 import type { ConfigService } from '@nestjs/config';
 import type { AppLogger } from '../logging/logger.types';
+import type { RawVehicleMake } from './domain/vehicle.types';
 import type { NhtsaClient } from './infrastructure/nhtsa.client';
 import type { VehicleRepository } from './infrastructure/vehicle.repository';
 
@@ -16,6 +17,7 @@ const config = {
       'ingestion.ingestOnStartup': false,
       'ingestion.maxMakes': 0,
       'ingestion.concurrency': 2,
+      'ingestion.batchSize': 250,
     };
 
     return values[key];
@@ -29,16 +31,19 @@ describe('VehicleIngestionService', () => {
 
   it('fetches XML, transforms records, and persists successful makes', async () => {
     const client = {
-      fetchAllMakesXml: jest.fn().mockResolvedValue({
-        Response: {
-          Results: {
-            AllVehicleMakes: [
+      streamAllMakesInBatches: jest
+        .fn()
+        .mockImplementation(
+          async (
+            _batchSize: number,
+            onBatch: (batch: RawVehicleMake[]) => Promise<void>,
+          ) => {
+            await onBatch([
               { Make_ID: '440', Make_Name: 'ASTON MARTIN' },
               { Make_ID: '441', Make_Name: 'TESLA' },
-            ],
+            ]);
           },
-        },
-      }),
+        ),
       fetchVehicleTypesXml: jest.fn().mockResolvedValue({
         Response: {
           Results: {
@@ -79,7 +84,9 @@ describe('VehicleIngestionService', () => {
   it('wraps unrecoverable ingestion failures', async () => {
     const service = new VehicleIngestionService(
       {
-        fetchAllMakesXml: jest.fn().mockRejectedValue(new Error('network')),
+        streamAllMakesInBatches: jest
+          .fn()
+          .mockRejectedValue(new Error('network')),
       } as unknown as NhtsaClient,
       { upsertMany: jest.fn() } as unknown as VehicleRepository,
       config as unknown as ConfigService,

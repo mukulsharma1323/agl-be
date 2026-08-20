@@ -38,6 +38,7 @@ const envSchema = z.object({
     ),
   HTTP_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
   INGESTION_CONCURRENCY: z.coerce.number().int().positive().default(8),
+  INGESTION_BATCH_SIZE: z.coerce.number().int().positive().default(250),
   INGESTION_MAX_MAKES: z.coerce.number().int().min(0).default(0),
   INGEST_ON_STARTUP: booleanFromEnv.default(false),
 });
@@ -61,6 +62,7 @@ export function validateConfig(config: Record<string, unknown>) {
     },
     ingestion: {
       concurrency: parsed.INGESTION_CONCURRENCY,
+      batchSize: parsed.INGESTION_BATCH_SIZE,
       maxMakes: parsed.INGESTION_MAX_MAKES,
       ingestOnStartup: parsed.INGEST_ON_STARTUP,
     },
