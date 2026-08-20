@@ -49,6 +49,8 @@ Open `http://localhost:3000/graphql`.
 
 Run a limited ingestion while developing:
 
+![Mutation](docs/mutation.png)
+
 ```graphql
 mutation {
   ingestVehicleData(limit: 10) {
@@ -60,6 +62,8 @@ mutation {
 ```
 
 Then query the stored data:
+
+![Query](docs/query.png)
 
 ```graphql
 query {
