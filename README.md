@@ -30,6 +30,8 @@ NestJS service that ingests XML from the public NHTSA vPIC APIs, transforms the 
 ## Local Setup
 
 ```bash
+git clone https://github.com/mukulsharma1323/agl-be.git
+cd agl-be
 npm install
 cp .env.example .env
 npm run start:dev
